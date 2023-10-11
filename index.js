@@ -55,3 +55,37 @@ const gw = new aws.ec2.InternetGateway(gwConfig.name, {
         Name: gwConfig.metaName,
     },
 });
+
+// public and private route tables
+const routeTableConfig = config.requireObject("route-tables")
+
+const publicRouteTable = new aws.ec2.RouteTable(routeTableConfig.public.name, {
+    vpcId: vpc.id,
+    routes: [{
+        cidrBlock: routeTableConfig.public.cidrBlock,
+        gatewayId: gw.id,
+    }],
+    tags: {
+        Name: routeTableConfig.public.metaName
+    }
+});
+
+const privateRouteTable = new aws.ec2.RouteTable(routeTableConfig.private.name, {
+    vpcId: vpc.id,
+    tags: {
+        Name: routeTableConfig.private.metaName
+    }
+});
+
+//association
+for(let i = 0; i < 3; i++) {
+    new aws.ec2.RouteTableAssociation(`${routeTableConfig.association.public.name}${i}`, {
+        subnetId: publicSubnets[i].id,
+        routeTableId: publicRouteTable.id, 
+    });
+
+    new aws.ec2.RouteTableAssociation(`${routeTableConfig.association.private.name}${i}`, {
+        subnetId: privateSubnets[i].id,
+        routeTableId: privateRouteTable.id,
+    });
+}
