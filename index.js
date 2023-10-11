@@ -46,3 +46,12 @@ for (let i = 0; i < 3; i++) {
     publicSubnets.push(publicSubnet);
     privateSubnets.push(privateSubnet);
 }
+
+//Create Internet Gateway and attach the Internet Gateway to the VPC
+const gwConfig = config.requireObject("gw");
+const gw = new aws.ec2.InternetGateway(gwConfig.name, {
+    vpcId: vpc.id,
+    tags: {
+        Name: gwConfig.metaName,
+    },
+});
