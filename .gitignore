@@ -1,9 +1,9 @@
+/.pulumi/
+/.vscode/
+/.vs/
 /node_modules/
-# Ignore Pulumi stack and state files
-*.pulumi
-*.pulumi.yaml
-*.pulumi.yml
 
-# Ignore Pulumi configuration file
-Pulumi.dev.yaml
-Pulumi.prod.yaml
+# Ignore Pulumi stack files
+Pulumi.*.yaml
+
+**/.DS_Store
