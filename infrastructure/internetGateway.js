@@ -1,14 +1,15 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import { getResourceName } from "../helper/resourceName.js";
 
 const config = new pulumi.Config();
-const gwConfig = config.requireObject("gw");
+const { name } = config.requireObject("gw");
 
 export const createInternetGateway = (vpcId) => {
-    const gw = new aws.ec2.InternetGateway(gwConfig.name, {
+    const gw = new aws.ec2.InternetGateway(getResourceName(name), {
         vpcId,
         tags: {
-            Name: gwConfig.metaName,
+            Name: getResourceName(name),
         },
     });
 
