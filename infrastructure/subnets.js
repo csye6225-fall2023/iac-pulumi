@@ -1,34 +1,50 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import { getResourceName } from "../helper/resourceName.js";
 
 const config = new pulumi.Config();
+const baseCIDR = config.getObject("vpc").cidrBlock;
+const { maxAvailabilityZones, publicSn, privateSn } = config.getObject("subnets");
 
-const subnetNames = config.getObject("subnets").names;
-const subnetCidrBlocks = config.getObject("subnets").cidrBlocks;
-const availabilityZones = config.getObject("subnets").availabilityZones;
-const subnetTags = config.getObject("subnets").tags;
+function generateCidr(octetToBeIncremented, octet, subnetPrefix) {
+    const ip = baseCIDR.split("/")[0];
+    let cidr = ip.split(".");
+    cidr[octetToBeIncremented] = octet;
+    cidr = cidr.join(".") + "/" + subnetPrefix;
 
-export const createSubnets = (vpcId) => {
+    return cidr;
+}
+
+export const createSubnets = (vpcId, zones) => {
     const publicSubnets = [];
     const privateSubnets = [];
 
-    for (let i = 0; i < 3; i++) {
-        const publicSubnet = new aws.ec2.Subnet(subnetNames.public[i], {
+    const subnetPrefix = parseInt(baseCIDR.split("/")[1]) + 8;
+    const octetToBeIncremented = (subnetPrefix / 8) - 1;
+    const number_of_zones = Math.min(zones.names.length, maxAvailabilityZones);
+    let octet = parseInt(baseCIDR.split("/")[0].split(".")[octetToBeIncremented]);
+
+    for(let i = 0; i < number_of_zones; i++) {
+        const publicSubnetCidr = generateCidr(octetToBeIncremented, ++octet, subnetPrefix);
+        const privateSubnetCidr = generateCidr(octetToBeIncremented, octet + number_of_zones, subnetPrefix);
+
+        //make the public and private subnets in each availability zones
+        const publicSubnet = new aws.ec2.Subnet(getResourceName(`${publicSn.name}${i + 1}`), {
             vpcId,
-            cidrBlock: subnetCidrBlocks.public[i],
-            availabilityZone: availabilityZones.public[i],
+            cidrBlock: publicSubnetCidr,
+            availabilityZone: zones.names[i],
             mapPublicIpOnLaunch: true,
             tags: {
-                Name: subnetTags.public[i]
+                Name: getResourceName(`${publicSn.name}${i + 1}`)
             }
         });
 
-        const privateSubnet = new aws.ec2.Subnet(subnetNames.private[i], {
+        const privateSubnet = new aws.ec2.Subnet(getResourceName(`${privateSn.name}${i + 1}`), {
             vpcId,
-            cidrBlock: subnetCidrBlocks.private[i],
-            availabilityZone: availabilityZones.private[i],
+            cidrBlock: privateSubnetCidr,
+            availabilityZone: zones.names[i],
             tags: {
-                Name: subnetTags.private[i]
+                Name: getResourceName(`${privateSn.name}${i + 1}`)
             }
         });
 
@@ -37,4 +53,4 @@ export const createSubnets = (vpcId) => {
     }
 
     return { publicSubnets, privateSubnets };
-};
+}
