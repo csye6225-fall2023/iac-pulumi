@@ -16,6 +16,34 @@ This Pulumi project sets up an Amazon Virtual Private Cloud (VPC) in AWS and con
 ## Installation
 - run `npm install`
 - run `pulumi config set aws:region <your_region>`
-- Setup your stack based on example configuration
+- Setup your stack based on example configuration below
 - to create the infra, run `pulumi up`
 - to destroy the infra, run `pulumi destroy`
+
+## Pulumi Stack Configuration Options
+
+```yaml
+config:
+  aws:profile: <your_aws_profile>
+  aws:region: <your_aws_region>
+  gw:
+    name: "<your_gateway_name>"
+  route-tables:
+    privateRt:
+      name: "<your_private_route_table_name>"
+    publicRt:
+      cidrBlock: "<your_public_route_table_cidr_block>"
+      name: "<your_public_route_table_name>"
+    association:
+      privateRt: "<your_private_route_association>"
+      publicRt: "<your_public_route_association>"
+  vpc:
+    cidrBlock: "<your_vpc_cidr_block>"
+    name: "<your_vpc_name>"
+  subnets:
+    maxAvailabilityZones: <your_max_availability_zones>
+    publicSn:
+      name: "<your_public_subnet_name>"
+    privateSn:
+      name: "<your_private_subnet_name>"
+```
