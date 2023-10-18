@@ -21,7 +21,7 @@ export const createEC2Instance = (publicSubnets, securityGroupId) => {
         tags: {
             Name: getResourceName(ec2.name)
         },
-        disableApiTermination: false, // Allow termination of the EC2 instance //@TODO verify
+        disableApiTermination: false, // Allow termination of the EC2 instance 
     });
 
     return instance;
