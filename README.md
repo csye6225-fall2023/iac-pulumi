@@ -7,6 +7,7 @@ This Pulumi project sets up an Amazon Virtual Private Cloud (VPC) in AWS and con
 - Creates a public route table and attaches all public subnets to it.
 - Creates a private route table and attaches all private subnets to it.
 - Creates a public route in the public route table with the destination CIDR block 0.0.0.0/0 and the internet gateway as the target.
+- Creates a security group which is attached to an EC2 instance where the mentioned ami is deployed
 
 ## Prerequisites
 - [Node.js and npm](https://nodejs.org/) installed
@@ -46,4 +47,20 @@ config:
       name: "<your_public_subnet_name>"
     privateSn:
       name: "<your_private_subnet_name>"
+  security-group:
+    name: "<your_security_group_name>"
+    ingressRules:
+      - protocol: "<your_protocol>"
+        fromPort: "<from_port>"
+        toPort: "<to_port>"
+        cidrBlocks: "<ip_v4_cidr>"
+        ipv6CidrBlocks: "<ip_v6_cidr>"
+  ec2:
+    name: "<your_instance_name>"
+    instanceType: "<your_instance_type>"
+    amiId: "<your_ami_id>"
+    keyName: "<your_ssh_key>"
+    rootBlockDevice:
+      volumeSize: "<your_volume_size>"
+      volumeType: "<your_volume_type>"
 ```
