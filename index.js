@@ -1,18 +1,37 @@
+import * as aws from "@pulumi/aws";
 import * as vpcModule from "./infrastructure/vpc.js";
 import * as subnetsModule from "./infrastructure/subnets.js";
 import * as internetGatewayModule from "./infrastructure/internetGateway.js";
 import * as routeTableModule from "./infrastructure/routeTable.js";
-import * as aws from "@pulumi/aws";
-import { createSecurityGroup } from "./infrastructure/securityGroup.js";
-import { createEC2Instance } from "./infrastructure/ec2.js";
+import * as parameterGroupModule from "./infrastructure/parameterGroup.js";
+import * as securityGroupModule from "./infrastructure/securityGroup.js";
+import * as ec2Module from "./infrastructure/ec2.js";
+import * as rdsModule from "./infrastructure/rds.js";
 
 const createInfra = (zones) => {
+    // Create a vpc
     const vpc = vpcModule.createVpc();
+
+    // Create subnets
     const { publicSubnets, privateSubnets } = subnetsModule.createSubnets(vpc.id, zones);
+
+    // Create internet gateway and route tables
     const gw = internetGatewayModule.createInternetGateway(vpc.id);
+
+    // Create route tables and associations
     routeTableModule.createRouteTablesAndAssociations(vpc.id, gw.id, publicSubnets, privateSubnets);
-    const securityGroup = createSecurityGroup(vpc.id);
-    createEC2Instance(publicSubnets, securityGroup.id);
+
+    // Create security groups
+    const { securityGroup, RDSSecurityGroup } = securityGroupModule.createSecurityGroup(vpc.id); 
+
+    // Create RDS Parameter Group
+    const parameterGroupRds = parameterGroupModule.createParameterGroupRds(); 
+
+    // Create RDS
+    const rds = rdsModule.createRDS(parameterGroupRds.name, RDSSecurityGroup.id, publicSubnets); 
+
+    // Create EC2 instance
+    ec2Module.createEC2Instance(publicSubnets, securityGroup.id);
 }
 
 aws.getRegion({}).then(region => {

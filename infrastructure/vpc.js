@@ -8,6 +8,7 @@ const { cidrBlock, name } = config.requireObject("vpc");
 export const createVpc = () => {
     const vpc = new aws.ec2.Vpc(getResourceName(name), {
         cidrBlock: cidrBlock,
+        enableDnsHostnames: true,
         tags: {
             Name: getResourceName(name),
         },
