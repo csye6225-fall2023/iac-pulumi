@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
 const config = new pulumi.Config();
-const { name, ingressRules } = config.requireObject("security-group");
+const { name, ingressRules, securityGroupRds } = config.requireObject("security-group");
 
 export const createSecurityGroup = (vpcId) => {
     const securityGroup = new aws.ec2.SecurityGroup(name, {
@@ -19,5 +19,21 @@ export const createSecurityGroup = (vpcId) => {
         },
     });
 
-    return securityGroup;
+    const RDSSecurityGroup = new aws.ec2.SecurityGroup(securityGroupRds.name, {
+        vpcId,
+        tags: {
+            Name: securityGroupRds.name,
+        },
+    });
+
+    new aws.ec2.SecurityGroupRule(`${securityGroupRds}-rule`, {
+        type: securityGroupRds.rule.type,
+        fromPort: securityGroupRds.rule.fromPort,
+        toPort: securityGroupRds.rule.toPort,
+        protocol: securityGroupRds.rule.protocol,
+        sourceSecurityGroupId: securityGroup.id,
+        securityGroupId: RDSSecurityGroup.id,
+    });
+    
+    return { securityGroup, RDSSecurityGroup };
 }
