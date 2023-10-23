@@ -5,7 +5,7 @@ const config = new pulumi.Config();
 const { name, ingressRules, securityGroupRds } = config.requireObject("security-group");
 
 export const createSecurityGroup = (vpcId) => {
-    const securityGroup = new aws.ec2.SecurityGroup(name, {
+    const applicatonSecurityGroup = new aws.ec2.SecurityGroup(name, {
         vpcId,
         ingress: ingressRules.map(rule => ({
             protocol: rule.protocol,
@@ -14,6 +14,14 @@ export const createSecurityGroup = (vpcId) => {
             cidrBlocks: rule.cidrBlocks,
             ipv6CidrBlocks: rule.ipv6CidrBlocks,
         })),
+        egress:[
+            {
+                protocol: "-1",
+                fromPort: 0,
+                toPort: 0,
+                cidrBlocks: ["0.0.0.0/0"],
+            }
+        ],
         tags: {
             Name: name,
         },
@@ -21,19 +29,26 @@ export const createSecurityGroup = (vpcId) => {
 
     const RDSSecurityGroup = new aws.ec2.SecurityGroup(securityGroupRds.name, {
         vpcId,
+        ingress: [
+            {
+                protocol: securityGroupRds.rule.protocol,
+                fromPort: securityGroupRds.rule.fromPort,
+                toPort: securityGroupRds.rule.toPort,
+                securityGroups: [applicatonSecurityGroup.id],
+            }
+        ],
+        egress:[
+            {
+                protocol: "-1",
+                fromPort: 0,
+                toPort: 0,
+                cidrBlocks: ["0.0.0.0/0"],
+            }
+        ],
         tags: {
             Name: securityGroupRds.name,
         },
     });
-
-    new aws.ec2.SecurityGroupRule(`${securityGroupRds}-rule`, {
-        type: securityGroupRds.rule.type,
-        fromPort: securityGroupRds.rule.fromPort,
-        toPort: securityGroupRds.rule.toPort,
-        protocol: securityGroupRds.rule.protocol,
-        sourceSecurityGroupId: securityGroup.id,
-        securityGroupId: RDSSecurityGroup.id,
-    });
-    
-    return { securityGroup, RDSSecurityGroup };
+  
+    return { applicatonSecurityGroup, RDSSecurityGroup };
 }

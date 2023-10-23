@@ -22,16 +22,15 @@ const createInfra = (zones) => {
     routeTableModule.createRouteTablesAndAssociations(vpc.id, gw.id, publicSubnets, privateSubnets);
 
     // Create security groups
-    const { securityGroup, RDSSecurityGroup } = securityGroupModule.createSecurityGroup(vpc.id); 
+    const { applicatonSecurityGroup, RDSSecurityGroup } = securityGroupModule.createSecurityGroup(vpc.id); 
 
     // Create RDS Parameter Group
     const parameterGroupRds = parameterGroupModule.createParameterGroupRds(); 
 
     // Create RDS
-    const rds = rdsModule.createRDS(parameterGroupRds.name, RDSSecurityGroup.id, publicSubnets); 
+    const database = rdsModule.createRDS(parameterGroupRds.name, RDSSecurityGroup.id, privateSubnets);
 
-    // Create EC2 instance
-    ec2Module.createEC2Instance(publicSubnets, securityGroup.id);
+    ec2Module.createEC2Instance(publicSubnets, applicatonSecurityGroup.id, database);   
 }
 
 aws.getRegion({}).then(region => {

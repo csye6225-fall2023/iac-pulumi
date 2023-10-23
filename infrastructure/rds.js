@@ -23,7 +23,7 @@ export const createRDS = (parameterGroupName, vpcSecurityGroupId, subnets) => {
         multiAz: false,
         dbSubnetGroupName: dbSubnetGroup.name,
         vpcSecurityGroupIds: [vpcSecurityGroupId],
-        publiclyAccessible: true,
+        publiclyAccessible: false,
         tags: {
             Name: rds.name,
         }
