@@ -23,51 +23,18 @@ export const createEC2Instance = (publicSubnets, securityGroupId, database) => {
         },
         disableApiTermination: false, // Allow termination of the EC2 instance 
         userData: pulumi.interpolate`#!/bin/bash
-set -x
-echo "Starting user data script"
-# Set up environment variables
-export PORT=8080
-export DB_HOST=${database.endpoint.apply(endpoint => endpoint.split(":")[0])}
-export DB_NAME=HealthConnectDB
-export DB_USER=admin
-export DB_PASSWORD=password
-export DB_DIALECT=mysql
-export NODE_ENV=prod
-export USER_CSV_PATH=/home/admin/webapp/application/users.csv
-
-echo "Installing Node.js"
-# Install Node.js and other dependencies
-yum update -y
-yum install -y nodejs
-
-echo "Configuring application"
-# Create a systemd service unit file
-cat << EOF > /etc/systemd/system/my-node-app.service
-[Unit]
-After=network.target
-
-[Service]
-Environment=PORT=8080
-Environment=DB_HOST=${database.endpoint.apply(endpoint => endpoint.split(":")[0])}
-Environment=DB_NAME=HealthConnectDB
-Environment=DB_USER=admin
-Environment=DB_PASSWORD=password
-Environment=DB_DIALECT=mysql
-Environment=NODE_ENV=prod
-Environment=USER_CSV_PATH=/home/admin/webapp/application/users.csv
-Type=simple
-ExecStart=/usr/bin/node /home/admin/webapp/index.js
-WorkingDirectory=/home/admin/webapp
-Restart=on-failure
-
-[Install]
-WantedBy=cloud-init.target
-EOF
-
-# Reload systemd and start the service
-systemctl daemon-reload
-systemctl enable my-node-app
-systemctl start my-node-app`
+cd /home/admin/webapp
+rm -rf .env
+touch .env
+echo PORT=8080 >> .env
+echo DB_HOST=${ database.address } >> .env
+echo DB_NAME=HealthConnectDB >> .env
+echo DB_USER=admin >> .env
+echo DB_PASSWORD=password >> .env
+echo DB_DIALECT=mysql >> .env
+echo USER_CSV_PATH=./application/users.csv >> .env
+echo NODE_ENV=prod >> .env
+`
     }, {
         dependsOn: [database]
     });
