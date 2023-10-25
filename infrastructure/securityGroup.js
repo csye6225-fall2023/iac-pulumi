@@ -1,52 +1,44 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import { getResourceName } from "../helper/resourceName.js";
 
 const config = new pulumi.Config();
-const { name, ingressRules, securityGroupRds } = config.requireObject("security-group");
+const applicationSecurityGroup = config.requireObject("security-group").applicationSecurityGroup;
+const rdsSecurityGroup = config.requireObject("security-group").rdsSecurityGroup;
 
-export const createSecurityGroup = (vpcId) => {
-    const applicatonSecurityGroup = new aws.ec2.SecurityGroup(name, {
+export const createSecurityGroups = (vpcId) => {
+    const applicatonSecurityGroup = new aws.ec2.SecurityGroup(getResourceName(applicationSecurityGroup.name), {
         vpcId,
-        ingress: ingressRules.map(rule => ({
+        ingress: applicationSecurityGroup.ingressRules.map(rule => ({
             protocol: rule.protocol,
             fromPort: rule.fromPort,
             toPort: rule.toPort,
             cidrBlocks: rule.cidrBlocks,
             ipv6CidrBlocks: rule.ipv6CidrBlocks,
         })),
-        egress:[
-            {
-                protocol: "-1",
-                fromPort: 0,
-                toPort: 0,
-                cidrBlocks: ["0.0.0.0/0"],
-            }
-        ],
+        egress: applicationSecurityGroup.egressRules.map(rule => ({
+            protocol: rule.protocol,
+            fromPort: rule.fromPort,
+            toPort: rule.toPort,
+            cidrBlocks: rule.cidrBlocks,
+        })),
         tags: {
-            Name: name,
+            Name: getResourceName(applicationSecurityGroup.name),
         },
     });
 
-    const RDSSecurityGroup = new aws.ec2.SecurityGroup(securityGroupRds.name, {
+    const RDSSecurityGroup = new aws.ec2.SecurityGroup(getResourceName(rdsSecurityGroup.name), {
         vpcId,
         ingress: [
             {
-                protocol: securityGroupRds.rule.protocol,
-                fromPort: securityGroupRds.rule.fromPort,
-                toPort: securityGroupRds.rule.toPort,
+                protocol: rdsSecurityGroup.ingressRule.protocol,
+                fromPort: rdsSecurityGroup.ingressRule.fromPort,
+                toPort: rdsSecurityGroup.ingressRule.toPort,
                 securityGroups: [applicatonSecurityGroup.id],
             }
         ],
-        egress:[
-            {
-                protocol: "-1",
-                fromPort: 0,
-                toPort: 0,
-                cidrBlocks: ["0.0.0.0/0"],
-            }
-        ],
         tags: {
-            Name: securityGroupRds.name,
+            Name: getResourceName(rdsSecurityGroup.name),
         },
     });
   

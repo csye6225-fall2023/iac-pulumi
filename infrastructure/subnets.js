@@ -3,8 +3,8 @@ import * as aws from "@pulumi/aws";
 import { getResourceName } from "../helper/resourceName.js";
 
 const config = new pulumi.Config();
-const baseCIDR = config.getObject("vpc").cidrBlock;
-const { maxAvailabilityZones, publicSn, privateSn } = config.getObject("subnets");
+const baseCIDR = config.requireObject("vpc").cidrBlock;
+const { maxAvailabilityZones, publicSn, privateSn } = config.requireObject("subnets");
 
 function generateCidr(octetToBeIncremented, octet, subnetPrefix) {
     const ip = baseCIDR.split("/")[0];

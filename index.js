@@ -22,7 +22,7 @@ const createInfra = (zones) => {
     routeTableModule.createRouteTablesAndAssociations(vpc.id, gw.id, publicSubnets, privateSubnets);
 
     // Create security groups
-    const { applicatonSecurityGroup, RDSSecurityGroup } = securityGroupModule.createSecurityGroup(vpc.id); 
+    const { applicatonSecurityGroup, RDSSecurityGroup } = securityGroupModule.createSecurityGroups(vpc.id); 
 
     // Create RDS Parameter Group
     const parameterGroupRds = parameterGroupModule.createParameterGroupRds(); 
