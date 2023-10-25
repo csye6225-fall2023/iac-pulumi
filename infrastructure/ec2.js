@@ -24,7 +24,7 @@ export const createEC2Instance = (publicSubnets, securityGroupId, database) => {
         },
         disableApiTermination: false, // Allow termination of the EC2 instance 
         userData: pulumi.interpolate`#!/bin/bash
-        cd /opt/webapp
+        cd /opt/csye6225/webapp
         touch .env
         echo PORT=8080 >> .env
         echo DB_HOST=${ database.address } >> .env
