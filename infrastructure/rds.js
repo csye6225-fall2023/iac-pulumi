@@ -1,15 +1,19 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
+import { getResourceName } from "../helper/resourceName.js";
 
 const config = new pulumi.Config();
-const rds = config.getObject("rds");
+const rds = config.requireObject("rds");
 
 export const createRDS = (parameterGroupName, vpcSecurityGroupId, subnets) => {
-    const dbSubnetGroup = new aws.rds.SubnetGroup(`${rds.name}-subnet-group`, {
-        subnetIds: [subnets[0].id, subnets[1].id],
+    const dbSubnetGroup = new aws.rds.SubnetGroup(getResourceName(`${rds.name}-subnet-group`), {
+        subnetIds: [subnets[0].id, subnets[1].id], 
+        tags: {
+            Name: getResourceName(`${rds.name}-subnet-group`),
+        }
     });
 
-    const database = new aws.rds.Instance(rds.name, {
+    const database = new aws.rds.Instance(getResourceName(rds.name), {
         allocatedStorage: rds.allocatedStorage,
         dbName: rds.dbName,
         engine: rds.engine,
@@ -25,7 +29,7 @@ export const createRDS = (parameterGroupName, vpcSecurityGroupId, subnets) => {
         vpcSecurityGroupIds: [vpcSecurityGroupId],
         publiclyAccessible: false,
         tags: {
-            Name: rds.name,
+            Name: getResourceName(rds.name),
         }
     });
 
