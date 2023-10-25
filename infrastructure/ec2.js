@@ -4,6 +4,7 @@ import { getResourceName } from "../helper/resourceName.js";
 
 const config = new pulumi.Config();
 const ec2 = config.requireObject("ec2");
+const rdsConfig = config.requireObject("rds");
 const { volumeSize, volumeType } = config.requireObject("ec2").rootBlockDevice;
 
 export const createEC2Instance = (publicSubnets, securityGroupId, database) => {
@@ -23,18 +24,17 @@ export const createEC2Instance = (publicSubnets, securityGroupId, database) => {
         },
         disableApiTermination: false, // Allow termination of the EC2 instance 
         userData: pulumi.interpolate`#!/bin/bash
-cd /home/admin/webapp
-rm -rf .env
-touch .env
-echo PORT=8080 >> .env
-echo DB_HOST=${ database.address } >> .env
-echo DB_NAME=HealthConnectDB >> .env
-echo DB_USER=admin >> .env
-echo DB_PASSWORD=password >> .env
-echo DB_DIALECT=mysql >> .env
-echo USER_CSV_PATH=./application/users.csv >> .env
-echo NODE_ENV=prod >> .env
-`
+        cd /opt/webapp
+        touch .env
+        echo PORT=8080 >> .env
+        echo DB_HOST=${ database.address } >> .env
+        echo DB_NAME=${rdsConfig.dbName} >> .env
+        echo DB_USER=${rdsConfig.username} >> .env
+        echo DB_PASSWORD=${rdsConfig.password} >> .env
+        echo DB_DIALECT=${rdsConfig.dialect} >> .env
+        echo USER_CSV_PATH=./application/users.csv >> .env
+        echo NODE_ENV=prod >> .env
+        `
     }, {
         dependsOn: [database]
     });
