@@ -7,7 +7,8 @@ This Pulumi project sets up an Amazon Virtual Private Cloud (VPC) in AWS and con
 - Creates a public route table and attaches all public subnets to it.
 - Creates a private route table and attaches all private subnets to it.
 - Creates a public route in the public route table with the destination CIDR block 0.0.0.0/0 and the internet gateway as the target.
-- Creates a security group which is attached to an EC2 instance where the mentioned ami is deployed
+- Creates an rds instance with the mentioned configuration and passes the hostname of the rds as user data to the ec2 instance.
+- Creates a security group which is attached to an EC2 instance where the mentioned ami is deployed.
 
 ## Prerequisites
 - [Node.js and npm](https://nodejs.org/) installed
@@ -48,13 +49,26 @@ config:
     privateSn:
       name: "<your_private_subnet_name>"
   security-group:
-    name: "<your_security_group_name>"
-    ingressRules:
-      - protocol: "<your_protocol>"
-        fromPort: "<from_port>"
-        toPort: "<to_port>"
-        cidrBlocks: "<ip_v4_cidr>"
-        ipv6CidrBlocks: "<ip_v6_cidr>"
+    applicationSecurityGroup:
+      name: "<your_security_group_name>"
+      ingressRules:
+        - protocol: "<your_protocol>"
+          fromPort: "<your_from_port>"
+          toPort: "<your_to_port>"
+          cidrBlocks: ["<your_ip_v4_cidr>"]
+          ipv6CidrBlocks: ["<your_ip_v6_cidr>"]
+
+      egressRules:
+        - protocol: "<your_protocol>"
+          fromPort: "<your_from_port>"
+          toPort: "<your_to_port>"
+          cidrBlocks: ["<your_ip_v4_cidr>"]
+    rdsSecurityGroup:
+      name: "<your_rds_security_group_name>"
+      ingressRule:
+        protocol: "<your_protocol>"
+        fromPort: "<your_from_port>"
+        toPort: "<your_to_port>"
   ec2:
     name: "<your_instance_name>"
     instanceType: "<your_instance_type>"
@@ -63,4 +77,18 @@ config:
     rootBlockDevice:
       volumeSize: "<your_volume_size>"
       volumeType: "<your_volume_type>"
+  rds:
+    name: "<your_rds_name>"
+    allocatedStorage: "<your_allocated_storage>"
+    dbName: "<your_db_name>"
+    engine: "<your_db_engine>"
+    engineVersion: "<your_db_engine_version>"
+    instanceClass: "<your_db_instance_class>"
+    storageType: "<your_db_storage_type>"
+    username: "<your_db_username>"
+    password: "<your_db_password>"
+    dialect: "<your_db_dialect>"
+    parameterGroup:
+      family: "<your_db_parameter_group_family>"
+      name: "<your_db_parameter_group_name>"
 ```
