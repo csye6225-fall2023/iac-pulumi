@@ -7,6 +7,7 @@ import * as parameterGroupModule from "./infrastructure/parameterGroup.js";
 import * as securityGroupModule from "./infrastructure/securityGroup.js";
 import * as ec2Module from "./infrastructure/ec2.js";
 import * as rdsModule from "./infrastructure/rds.js";
+import * as iamrolesModule from "./infrastructure/iamroles.js";
 import * as route53Module from "./infrastructure/route53.js";
 
 const createInfra = (zones) => {
@@ -31,8 +32,11 @@ const createInfra = (zones) => {
     // Create RDS
     const database = rdsModule.createRDS(parameterGroupRds.name, RDSSecurityGroup.id, privateSubnets);
 
+    // Create Roles
+    const profile = iamrolesModule.createAndAttachEC2role();
+
     //Create ec2 instance
-    const instance = ec2Module.createEC2Instance(publicSubnets, applicatonSecurityGroup.id, database);
+    const instance = ec2Module.createEC2Instance(publicSubnets, applicatonSecurityGroup.id, database, profile);
 
     //ceate route 53 record
     const route53 = route53Module.createRecord(instance.publicIp);
