@@ -42,31 +42,6 @@ export const createSecurityGroups = (vpcId) => {
             toPort: rule.toPort,
             cidrBlocks: rule.cidrBlocks,
         })),
-        // ingress: [
-        //     // Allow TCP traffic on port 22 from the load balancer security group
-        //     { 
-        //         protocol: "tcp", 
-        //         fromPort: 22, 
-        //         toPort: 22, 
-        //         securityGroups: [loadBalancerSecurityGroup.id] 
-        //     },
-        //     // Allow TCP traffic on port 8080 from the load balancer security group
-        //     { 
-        //         protocol: "tcp", 
-        //         fromPort: 8080, 
-        //         toPort: 8080, 
-        //         securityGroups: [loadBalancerSecurityGroup.id] 
-        //     },
-        // ],
-        // egress: [
-        //     {
-        //         protocol: "-1",
-        //         fromPort: 0,
-        //         toPort: 0,
-        //         cidrBlocks: ["0.0.0.0/0"]
-                
-        //     }
-        // ],
         tags: {
             Name: getResourceName(applicationSecurityGroupConfig.name),
         },
