@@ -9,11 +9,14 @@ export const createLoadBalancer = (subnets, loadBalancerSecurityGroup, vpcId) =>
     const loadBalancer = new aws.lb.LoadBalancer("appLB", {
         securityGroups: [loadBalancerSecurityGroup.id],
         subnets,
+        tags: {
+            Name: "appLB",
+        }
     });
 
     const targetGroup = new aws.lb.TargetGroup("targetGroup", {
-        vpcId, // provide your VPC id
-        port: targetGroupConfig.port, // application instances port (change if different)
+        vpcId,
+        port: targetGroupConfig.port, // application instances port
         protocol: targetGroupConfig.protocol,
         targetType: targetGroupConfig.targetType,
         healthCheck: {
@@ -24,12 +27,14 @@ export const createLoadBalancer = (subnets, loadBalancerSecurityGroup, vpcId) =>
             interval: healthCheckConfig.interval,
             timeout: healthCheckConfig.timeout,
             healthyThreshold: healthCheckConfig.healthyThreshold,
+            unhealthyThreshold: healthCheckConfig.unhealthyThreshold,
         }
     });
 
     const listener = new aws.lb.Listener("listener", {
         loadBalancerArn: loadBalancer.arn,
         port: listenerConfig.port,
+        protocol: listenerConfig.protocol,
         defaultActions: [{
             type: "forward",
             targetGroupArn: targetGroup.arn,

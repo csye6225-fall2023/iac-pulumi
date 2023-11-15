@@ -17,7 +17,7 @@ export const createAutoScalingGroup = (ec2LaunchTemplate, publicSubnets, loadBal
             id: ec2LaunchTemplate.id,
             version: "$Latest",
         },
-        tags: [{ //todo check this
+        tags: [{
             key: 'Name',
             value: 'asg-instance',
             propagateAtLaunch: true,
