@@ -23,7 +23,7 @@ export const createLaunchTemplate = (securityGroupId, database, iamRole) => {
     sudo systemctl start amazon-cloudwatch-agent`
 
     // Create a new Launch Template
-    const webAppLaunchTemplate = new aws.ec2.LaunchTemplate("webAppLaunchTemplate", {
+    const webAppLaunchTemplate = new aws.ec2.LaunchTemplate("csye6225_asg", {
         imageId: ec2.amiId,
         instanceType: ec2.instanceType,
         keyName: ec2.keyName,
@@ -34,7 +34,7 @@ export const createLaunchTemplate = (securityGroupId, database, iamRole) => {
             {
                 deviceName,
                 ebs: {
-                    deleteOnTermination: true, //todo check this
+                    deleteOnTermination: true, // This ensures EBS Volume gets deleted on instance termination
                     volumeSize,
                     volumeType,
                 }
@@ -45,10 +45,13 @@ export const createLaunchTemplate = (securityGroupId, database, iamRole) => {
         networkInterfaces: [
             {
                 associatePublicIpAddress: true,
-                deleteOnTermination: true,
+                deleteOnTermination: true, // This ensures Network Interface gets deleted on instance termination
                 securityGroups: [securityGroupId],
             }
-        ]
+        ],
+        tags: {
+            Name: "csye6225_asg"
+        }
     }, {
         dependsOn: [database]
     });
