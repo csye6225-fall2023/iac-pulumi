@@ -11,6 +11,7 @@ import * as iamrolesModule from "./infrastructure/iamroles.js";
 import * as route53Module from "./infrastructure/route53.js";
 import * as autoScalingGroupModule from "./infrastructure/autoScalingGroup.js";
 import * as loadBalancerModule from "./infrastructure/loadBalancer.js";
+import * as snsModule from "./infrastructure/snsTopic.js";
 
 const createInfra = (zones) => {
     // Create a vpc
@@ -48,6 +49,9 @@ const createInfra = (zones) => {
 
     //ceate route 53 record
     const route53 = route53Module.createRecord(loadBalancer);
+
+    //create sns topic
+    const sns = snsModule.createSnsTopic();
 }
 
 aws.getRegion({}).then(region => {
