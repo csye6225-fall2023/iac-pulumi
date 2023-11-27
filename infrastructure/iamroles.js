@@ -30,5 +30,8 @@ export const createAndAttachEC2role = () => {
         role: ec2Role.name,
     });
 
-    return profile;
+    return {
+        profile,
+        ec2Role,
+    };
 }
