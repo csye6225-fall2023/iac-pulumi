@@ -4,9 +4,10 @@ import * as pulumi from "@pulumi/pulumi";
 const config = new pulumi.Config();
 const ec2 = config.requireObject("ec2");
 const rdsConfig = config.requireObject("rds");
+const {region} = config.requireObject("aws-config");
 const { volumeSize, volumeType, deviceName } = config.requireObject("ec2").rootBlockDevice;
  
-export const createLaunchTemplate = (securityGroupId, database, iamRole) => {
+export const createLaunchTemplate = (securityGroupId, database, iamRole, sns) => {
     const userData = pulumi.interpolate`#!/bin/bash
     cd /opt/csye6225/webapp
     touch .env
@@ -18,6 +19,8 @@ export const createLaunchTemplate = (securityGroupId, database, iamRole) => {
     echo DB_DIALECT=${rdsConfig.dialect} >> .env
     echo USER_CSV_PATH=./application/users.csv >> .env
     echo NODE_ENV=prod >> .env
+    echo SNS_TOPIC_ARN=${sns.arn} >> .env
+    echo region=${region} >> .env
     sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \        -a fetch-config \    -m ec2 \    -c file:/opt/csye6225/webapp/configs/cloudwatch.config.json \    -s
     sudo systemctl enable amazon-cloudwatch-agent
     sudo systemctl start amazon-cloudwatch-agent`
@@ -53,7 +56,7 @@ export const createLaunchTemplate = (securityGroupId, database, iamRole) => {
             Name: "csye6225_asg"
         }
     }, {
-        dependsOn: [database]
+        dependsOn: [database, sns]
     });
 
     return webAppLaunchTemplate;
