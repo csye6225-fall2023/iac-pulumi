@@ -12,6 +12,10 @@ import * as route53Module from "./infrastructure/route53.js";
 import * as autoScalingGroupModule from "./infrastructure/autoScalingGroup.js";
 import * as loadBalancerModule from "./infrastructure/loadBalancer.js";
 import * as snsModule from "./infrastructure/snsTopic.js";
+import * as gcpStorageBucketModule from "./infrastructure/gcpStorageBucket.js";
+import * as gcpServiceAccountModule from "./infrastructure/gcpServiceAccount.js";
+import * as dynamoDBModule from "./infrastructure/dynamoDB.js";
+import * as lambdaModule from "./infrastructure/lambda.js";
 
 const createInfra = (zones) => {
     // Create a vpc
@@ -36,13 +40,16 @@ const createInfra = (zones) => {
     const database = rdsModule.createRDS(parameterGroupRds.name, RDSSecurityGroup.id, privateSubnets);
 
     // Create Roles
-    const profile = iamrolesModule.createAndAttachEC2role();
+    const { profile, ec2Role } = iamrolesModule.createAndAttachEC2role();
 
     //create load balancer
     const {loadBalancer, targetGroup} = loadBalancerModule.createLoadBalancer(publicSubnets.map(subnet => subnet.id), loadBalancerSecurityGroup, vpc.id);
 
+    //create sns topic
+    const sns = snsModule.createSnsTopic(ec2Role);
+
     //create launch template
-    const launchTemplate = ec2TemplateModule.createLaunchTemplate(applicatonSecurityGroup.id, database, profile);
+    const launchTemplate = ec2TemplateModule.createLaunchTemplate(applicatonSecurityGroup.id, database, profile, sns);
 
     //create autoscaling group
     const asg = autoScalingGroupModule.createAutoScalingGroup(launchTemplate, publicSubnets.map(subnet => subnet.id), targetGroup);
@@ -50,8 +57,20 @@ const createInfra = (zones) => {
     //ceate route 53 record
     const route53 = route53Module.createRecord(loadBalancer);
 
-    //create sns topic
-    const sns = snsModule.createSnsTopic();
+    //create gcp storage bucket
+    const bucket = gcpStorageBucketModule.createBucket();
+
+    //create service account
+    const {serviceAccount, serviceAccountKey} = gcpServiceAccountModule.createServiceAccount(bucket);
+
+    //create lambda role
+    const lambdaRole = lambdaModule.createLambdaRole();
+
+    //create dynamodb table
+    const table = dynamoDBModule.createDynamoDBTable(lambdaRole);
+
+    //create lambda function
+    const lambda = lambdaModule.createLambda(serviceAccountKey.privateKey, bucket.name, table.name, sns, lambdaRole);
 }
 
 aws.getRegion({}).then(region => {
