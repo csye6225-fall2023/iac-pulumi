@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
 const config = new pulumi.Config();
-const { policyArns, functionName, archivePath, runtime, handler } = config.requireObject("lambda");
+const { policyArns, functionName, archivePath, runtime, handler, env } = config.requireObject("lambda");
 
 export const createLambdaRole = () => {
     const lambdaRole = new aws.iam.Role("LambdaFunctionRole", {
@@ -59,6 +59,10 @@ export const createLambda = (gcpServiceAccountKey, gcpBucketName, dynamodbTableN
                 gcpServiceAccountKey,
                 gcpBucketName,
                 dynamodbTableName,
+                projectId: env.projectId,
+                mailgunFrom: env.mailgunFrom,
+                mailgunApiKey: env.mailgunApiKey,
+                mailgunDomain: env.mailgunDomain,
             }
         }
     });
