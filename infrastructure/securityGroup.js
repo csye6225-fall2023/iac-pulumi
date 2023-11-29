@@ -30,12 +30,20 @@ export const createSecurityGroups = (vpcId) => {
 
     const applicatonSecurityGroup = new aws.ec2.SecurityGroup(getResourceName(applicationSecurityGroupConfig.name), {
         vpcId,
-        ingress: applicationSecurityGroupConfig.ingressRules.map(rule => ({
-            protocol: rule.protocol,
-            fromPort: rule.fromPort,
-            toPort: rule.toPort,
-            securityGroups: [loadBalancerSecurityGroup.id]
-        })),
+        ingress: [
+            {
+                fromPort: 22,
+                protocol: "tcp",
+                toPort: 22,
+                cidrBlocks: ["0.0.0.0/0"],
+            }, 
+            {
+                fromPort: 8080,
+                protocol: "tcp",
+                toPort: 8080,
+                securityGroups: [loadBalancerSecurityGroup.id]
+            }
+        ],
         egress: applicationSecurityGroupConfig.egressRules.map(rule => ({
             protocol: rule.protocol,
             fromPort: rule.fromPort,
