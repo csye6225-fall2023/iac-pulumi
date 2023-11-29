@@ -33,7 +33,6 @@ export const createDynamoDBTable = (lambdaRole) => {
             {
                 name: `${name}-Timestamp`,
                 hashKey: "timestamp",
-                rangeKey: "id",
                 readCapacity: 5,
                 writeCapacity: 5,
                 projectionType: "ALL",
