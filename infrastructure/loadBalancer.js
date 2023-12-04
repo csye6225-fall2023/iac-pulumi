@@ -35,6 +35,8 @@ export const createLoadBalancer = (subnets, loadBalancerSecurityGroup, vpcId) =>
         loadBalancerArn: loadBalancer.arn,
         port: listenerConfig.port,
         protocol: listenerConfig.protocol,
+        sslPolicy: listenerConfig.sslPolicy,
+        certificateArn: listenerConfig.certificateArn,
         defaultActions: [{
             type: "forward",
             targetGroupArn: targetGroup.arn,
