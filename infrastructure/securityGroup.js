@@ -32,12 +32,6 @@ export const createSecurityGroups = (vpcId) => {
         vpcId,
         ingress: [
             {
-                fromPort: 22,
-                protocol: "tcp",
-                toPort: 22,
-                cidrBlocks: ["0.0.0.0/0"],
-            }, 
-            {
                 fromPort: 8080,
                 protocol: "tcp",
                 toPort: 8080,
